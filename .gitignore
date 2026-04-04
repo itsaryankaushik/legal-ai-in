@@ -1,6 +1,4 @@
-pdfs/
-images/
-indian-qwen-lora/
+temp/
 
 # Python
 __pycache__/
