@@ -60,13 +60,16 @@ class RedisClient:
         data = await self._redis.get(key)
         return json.loads(data) if data else None
 
-    # --- Rate limiting (sliding window per minute) ---
+    # --- Rate limiting (atomic sliding window per minute via SET NX + INCR pipeline) ---
     async def check_rate_limit(self, api_key: str, limit: int = 60) -> bool:
         bucket = int(time.time() // 60)
         key = f"ratelimit:{api_key}:{bucket}"
-        count = await self._redis.incr(key)
-        if count == 1:
-            await self._redis.expire(key, 90)
+        # Atomic: SET key 1 EX 90 NX ensures TTL is always set on first write.
+        # INCR on an existing key never resets TTL — no race between INCR and EXPIRE.
+        async with self._redis.pipeline(transaction=True) as pipe:
+            await pipe.set(key, 0, ex=90, nx=True)
+            await pipe.incr(key)
+            _, count = await pipe.execute()
         return count <= limit
 
     async def close(self):

@@ -22,16 +22,23 @@ class MongoDB:
         if self._client:
             self._client.close()
 
+    def _require_connected(self):
+        if self._db is None:
+            raise RuntimeError("MongoDB.connect() must be awaited before accessing collections.")
+
     @property
     def legal_nodes(self):
+        self._require_connected()
         return self._db.legal_nodes
 
     @property
     def case_indexes(self):
+        self._require_connected()
         return self._db.case_indexes
 
     @property
     def conversations(self):
+        self._require_connected()
         return self._db.conversations
 
 

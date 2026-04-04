@@ -11,11 +11,11 @@ class Settings(BaseSettings):
     MONGO_URI: str = "mongodb://localhost:27017/legalai"
     REDIS_URL: str = "redis://localhost:6379/0"
     POSTGRES_URL: str = "postgresql+asyncpg://legalai:changeme@localhost:5432/legalai"
-    POSTGRES_PASSWORD: str = "changeme"
+    POSTGRES_PASSWORD: str  # no default — must be set in .env
 
     MINIO_ENDPOINT: str = "localhost:9000"
     MINIO_ACCESS_KEY: str = "minioadmin"
-    MINIO_SECRET_KEY: str = "changeme"
+    MINIO_SECRET_KEY: str  # no default — must be set in .env
     MINIO_BUCKET_DOCS: str = "legal-docs"
     MINIO_BUCKET_ADAPTERS: str = "lora-adapters"
 
@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     CRITIC_THRESHOLD: float = 0.72
     ARGUMENT_K: int = 5
     SECONDARY_ADAPTER_CONFIDENCE: float = 0.40
-    API_KEY: str = "dev-key"
+    API_KEY: str  # no default — must be set in .env
 
 
 settings = Settings()

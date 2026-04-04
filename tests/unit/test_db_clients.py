@@ -46,10 +46,20 @@ async def test_redis_append_session_history():
 @pytest.mark.asyncio
 async def test_redis_rate_limit_allows_under_limit():
     from db.redis_client import RedisClient
+    from unittest.mock import AsyncMock, MagicMock
+
     client = RedisClient.__new__(RedisClient)
-    client._redis = AsyncMock()
-    client._redis.incr = AsyncMock(return_value=5)
-    client._redis.expire = AsyncMock(return_value=True)
+
+    # Mock pipeline context manager
+    mock_pipe = AsyncMock()
+    mock_pipe.set = AsyncMock()
+    mock_pipe.incr = AsyncMock()
+    mock_pipe.execute = AsyncMock(return_value=[True, 5])  # SET result, count=5
+    mock_pipe.__aenter__ = AsyncMock(return_value=mock_pipe)
+    mock_pipe.__aexit__ = AsyncMock(return_value=False)
+
+    client._redis = MagicMock()
+    client._redis.pipeline = MagicMock(return_value=mock_pipe)
 
     result = await client.check_rate_limit("test-key", limit=60)
     assert result is True
@@ -58,10 +68,19 @@ async def test_redis_rate_limit_allows_under_limit():
 @pytest.mark.asyncio
 async def test_redis_rate_limit_blocks_over_limit():
     from db.redis_client import RedisClient
+    from unittest.mock import AsyncMock, MagicMock
+
     client = RedisClient.__new__(RedisClient)
-    client._redis = AsyncMock()
-    client._redis.incr = AsyncMock(return_value=61)
-    client._redis.expire = AsyncMock(return_value=True)
+
+    mock_pipe = AsyncMock()
+    mock_pipe.set = AsyncMock()
+    mock_pipe.incr = AsyncMock()
+    mock_pipe.execute = AsyncMock(return_value=[True, 61])  # count=61 exceeds limit
+    mock_pipe.__aenter__ = AsyncMock(return_value=mock_pipe)
+    mock_pipe.__aexit__ = AsyncMock(return_value=False)
+
+    client._redis = MagicMock()
+    client._redis.pipeline = MagicMock(return_value=mock_pipe)
 
     result = await client.check_rate_limit("test-key", limit=60)
     assert result is False
