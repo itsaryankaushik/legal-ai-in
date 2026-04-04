@@ -1,6 +1,6 @@
 fastapi==0.128.8
 uvicorn[standard]==0.39.0
-gradio==4.44.1
+gradio==4.40.0
 pydantic==2.12.5
 pydantic-settings==2.11.0
 
@@ -16,7 +16,7 @@ sentencepiece==0.2.1
 # PDF processing
 pypdf2==3.0.1
 pdf2image==1.17.0
-Pillow==11.3.0
+Pillow==10.4.0
 
 # Databases
 motor==3.7.1

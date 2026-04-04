@@ -1,5 +1,6 @@
 # db/postgres.py
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker, AsyncGenerator
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from typing import AsyncGenerator
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import String, DateTime, ForeignKey, Text, Float, JSON
 from datetime import datetime, timezone
