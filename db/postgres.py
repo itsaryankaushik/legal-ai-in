@@ -19,7 +19,7 @@ class Case(Base):
     lawyer_id: Mapped[str] = mapped_column(String(100))
     domains: Mapped[list] = mapped_column(JSON, default=list)
     status: Mapped[str] = mapped_column(String(20), default="active")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     documents: Mapped[list["Document"]] = relationship(back_populates="case")
 
 
@@ -31,7 +31,7 @@ class Document(Base):
     filename: Mapped[str] = mapped_column(String(255))
     page_count: Mapped[int] = mapped_column(default=0)
     storage_path: Mapped[str] = mapped_column(String(500))
-    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     case: Mapped["Case"] = relationship(back_populates="documents")
 
 
@@ -45,7 +45,7 @@ class AuditLog(Base):
     adapters_used: Mapped[list] = mapped_column(JSON, default=list)
     latency_ms: Mapped[Optional[float]] = mapped_column(Float)
     api_cost_usd: Mapped[Optional[float]] = mapped_column(Float)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 
 engine = create_async_engine(settings.POSTGRES_URL, echo=False)

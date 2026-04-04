@@ -1,16 +1,16 @@
 # core/indexing/legal_db_precompute.py
 import json
 from pathlib import Path
-from openai import AsyncOpenAI
+from anthropic import AsyncAnthropic
 from core.config import settings
 
-_client: AsyncOpenAI | None = None
+_client: AsyncAnthropic | None = None
 
 
-def _get_client() -> AsyncOpenAI:
+def _get_client() -> AsyncAnthropic:
     global _client
     if _client is None:
-        _client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        _client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
     return _client
 
 
@@ -24,13 +24,13 @@ Section text:
 
 
 async def generate_section_summary(section_text: str) -> str:
-    response = await _get_client().chat.completions.create(
-        model="gpt-4.1-mini",
+    response = await _get_client().messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=200,
         messages=[{"role": "user", "content": LEGAL_SUMMARY_PROMPT + section_text[:2000]}],
         temperature=0,
-        max_tokens=200,
     )
-    return response.choices[0].message.content.strip()
+    return response.content[0].text.strip()
 
 
 async def build_legal_node(section: dict) -> dict:

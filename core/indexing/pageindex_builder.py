@@ -1,14 +1,14 @@
 # core/indexing/pageindex_builder.py
-from openai import AsyncOpenAI
+from anthropic import AsyncAnthropic
 from core.config import settings
 
-_client: AsyncOpenAI | None = None
+_client: AsyncAnthropic | None = None
 
 
-def _get_client() -> AsyncOpenAI:
+def _get_client() -> AsyncAnthropic:
     global _client
     if _client is None:
-        _client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        _client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
     return _client
 
 
@@ -21,13 +21,13 @@ Page text:
 
 
 async def generate_page_summary(page_text: str) -> str:
-    response = await _get_client().chat.completions.create(
-        model="gpt-4.1-mini",
+    response = await _get_client().messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=150,
         messages=[{"role": "user", "content": PAGE_SUMMARY_PROMPT + page_text[:3000]}],
         temperature=0,
-        max_tokens=150,
     )
-    return response.choices[0].message.content.strip()
+    return response.content[0].text.strip()
 
 
 async def build_case_pageindex(

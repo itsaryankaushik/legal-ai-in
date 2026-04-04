@@ -1,15 +1,15 @@
 # core/ingestion/summarizer.py
 import json
 import re
-from openai import AsyncOpenAI
+from anthropic import AsyncAnthropic
 from core.config import settings
 
-_client: AsyncOpenAI | None = None
+_client: AsyncAnthropic | None = None
 
-def _get_client() -> AsyncOpenAI:
+def _get_client() -> AsyncAnthropic:
     global _client
     if _client is None:
-        _client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        _client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
     return _client
 
 # IPC → BNS section mapping (extend this as needed)
@@ -33,18 +33,17 @@ Document:
 
 
 async def call_llm(text: str) -> dict:
-    response = await _get_client().chat.completions.create(
-        model="gpt-4.1-mini",
+    response = await _get_client().messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=1024,
         messages=[{"role": "user", "content": SUMMARIZE_PROMPT + text[:8000]}],
-        response_format={"type": "json_object"},
         temperature=0,
     )
+    raw = response.content[0].text
     try:
-        return json.loads(response.choices[0].message.content)
+        return json.loads(raw)
     except json.JSONDecodeError as exc:
-        raise ValueError(
-            f"LLM returned invalid JSON: {response.choices[0].message.content[:200]}"
-        ) from exc
+        raise ValueError(f"LLM returned invalid JSON: {raw[:200]}") from exc
 
 
 async def summarize_document(text: str) -> dict:

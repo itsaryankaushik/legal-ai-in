@@ -1,11 +1,10 @@
 # core/routing/domain_router.py
 import json
-import re
-from openai import AsyncOpenAI
+from anthropic import AsyncAnthropic
 from core.config import settings
 from typing import Optional
 
-_client: AsyncOpenAI | None = None
+_client: AsyncAnthropic | None = None
 
 DOMAINS = [
     "criminal", "constitutional", "civil", "corporate",
@@ -25,24 +24,25 @@ Text to classify:
 """
 
 
-def _get_client() -> AsyncOpenAI:
+def _get_client() -> AsyncAnthropic:
     global _client
     if _client is None:
-        _client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        _client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
     return _client
 
 
 async def call_classifier(text: str) -> list[dict]:
-    response = await _get_client().chat.completions.create(
-        model="gpt-4.1-mini",
+    response = await _get_client().messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=512,
         messages=[{"role": "user", "content": ROUTER_PROMPT + text[:2000]}],
-        response_format={"type": "json_object"},
         temperature=0,
     )
+    raw_text = response.content[0].text
     try:
-        raw = json.loads(response.choices[0].message.content)
+        raw = json.loads(raw_text)
     except json.JSONDecodeError as exc:
-        raise ValueError(f"Classifier returned invalid JSON: {response.choices[0].message.content[:200]}") from exc
+        raise ValueError(f"Classifier returned invalid JSON: {raw_text[:200]}") from exc
     if isinstance(raw, list):
         return raw
     return raw.get("domains", raw.get("classifications", []))
