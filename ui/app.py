@@ -9,7 +9,9 @@ API_KEY_PLACEHOLDER = "set-your-api-key"
 
 def chat(message: str, history: list, case_id: str, session_id: str, api_key: str):
     if not case_id.strip():
-        return history + [[message, "Please enter a Case ID first."]], session_id
+        history.append({"role": "user", "content": message})
+        history.append({"role": "assistant", "content": "Please enter a Case ID first."})
+        return history, session_id
 
     if not session_id:
         session_id = str(uuid.uuid4())
@@ -27,7 +29,9 @@ def chat(message: str, history: list, case_id: str, session_id: str, api_key: st
     except Exception as e:
         answer = f"Error: {e}"
 
-    return history + [[message, answer]], session_id
+    history.append({"role": "user", "content": message})
+    history.append({"role": "assistant", "content": answer})
+    return history, session_id
 
 
 with gr.Blocks(title="Indian Legal AI Assistant") as demo:
@@ -38,7 +42,7 @@ with gr.Blocks(title="Indian Legal AI Assistant") as demo:
         case_id_box = gr.Textbox(label="Case ID", placeholder="CASE-2024-001")
         api_key_box = gr.Textbox(label="API Key", placeholder="your-api-key", type="password")
 
-    chatbot = gr.Chatbot(height=500)
+    chatbot = gr.Chatbot(height=500, type="messages")
     session_state = gr.State("")
     msg_box = gr.Textbox(label="Your query", placeholder="What sections apply for cheating in this FIR?")
     send_btn = gr.Button("Send", variant="primary")
@@ -56,4 +60,4 @@ with gr.Blocks(title="Indian Legal AI Assistant") as demo:
 
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860, share=False, show_error=True)
+    demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
